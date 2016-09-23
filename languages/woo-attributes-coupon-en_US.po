@@ -1,0 +1,50 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-22 08:15+0000\n"
+"PO-Revision-Date: 2016-09-22 08:23+0000\n"
+"Last-Translator: obsong <hashgaurav@gmail.com>\n"
+"Language-Team: English (United States)\n"
+"Language: en-US\n"
+"Plural-Forms: nplurals=2; plural=n != 1\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco - https://localise.biz/"
+
+#. URI of the plugin
+msgid "https://github.com/gnagpal22/woo-attributes-coupon.git"
+msgstr "https://github.com/gnagpal22/woo-attributes-coupon.git"
+
+#. Author of the plugin
+msgid "Gaurav Nagpal"
+msgstr "Gaurav Nagpal"
+
+#. Author URI of the plugin
+msgid "http://www.gauravnagpal.com/"
+msgstr "http://www.gauravnagpal.com/"
+
+#. admin/class.woo-attributes-coupon-admin.php line 129
+msgid "Attributes"
+msgstr "Attributes"
+
+#. admin/class.woo-attributes-coupon-admin.php line 130
+msgid ""
+"select any attribute you want to apply this coupon too. press SHIFT key for "
+"multiple selection"
+msgstr ""
+"select any attribute you want to apply this coupon too. press SHIFT key for "
+"multiple selection"
+
+#. Description of the plugin
+msgid ""
+"Local Pickup time choice option to user when selecting local pickup shipping "
+"method"
+msgstr ""
+"Local Pickup time choice option to user when selecting local pickup shipping "
+"method"
+
+#. Name of the plugin
+msgid "Woo Attributes Coupon"
+msgstr "Woo Attributes Coupon"
