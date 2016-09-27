@@ -3,8 +3,10 @@ Contributors: gauravnagpal
 Tags: Attributes, coupons, discounts, sales, WooCommerce
 Requires at least: 3.x
 Tested up to: 4.6.1
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=nagpal.gaurav89@gmail.com
 
 Woocommerce coupon section extension for adding coupon for special attributes.
 
@@ -52,3 +54,6 @@ Yes you can! Join in on our [GitHub repository](https://github.com/gnagpal22/woo
 == Changelog ==
 = 1.0.0 =
 * initial version
+
+== Upgrade Notice ==
+This is initial plugin so need to worry about anything. Everything else will work perfectly.
