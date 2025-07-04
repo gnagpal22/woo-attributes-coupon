@@ -18,7 +18,7 @@ class Woo_Attributes_Coupon {
      *
      * @var     string
      */
-    const VERSION = '1.0';
+    const VERSION = '2.2';
 
     /**
      * Unique identifier for plugin.
@@ -46,6 +46,7 @@ class Woo_Attributes_Coupon {
      * @var string
      */
     protected $post_meta_name = 'attribute_id';
+    protected $tags_meta_name = 'tag_id';
 
     /**
      * Initialize the plugin by setting localization and loading public scripts
@@ -60,7 +61,10 @@ class Woo_Attributes_Coupon {
 
         // check if coupon valid or not
         add_filter('woocommerce_coupon_is_valid_for_product', array($this, 'wac_check_coupon_valid'), 10, 4);
-        
+        //add_filter('woocommerce_coupon_is_valid_for_product', array($this, 'wac_check_coupon_valid_attributes'), 10, 4);
+        //add_filter('woocommerce_coupon_is_valid_for_product', array($this, 'wac_check_coupon_valid_tags'), 11, 4);
+        add_filter('woocommerce_coupon_is_valid', array($this, 'wac_validate_coupon_cart_level'), 10, 2);
+
     }
 
     /**
@@ -85,6 +89,17 @@ class Woo_Attributes_Coupon {
         return $this->post_meta_name;
     }
 
+    /**
+     * Return the product tags name
+     *
+     * @since    1.0.0
+     *
+     * @return    Woo_Attributes_Coupon meta name variable.
+     */
+    public function get_tag_meta_name() {
+        return $this->tags_meta_name;
+    }
+    
     /**
      * Return an instance of this class.
      *
@@ -248,30 +263,147 @@ class Woo_Attributes_Coupon {
      * @since    1.0.0
      */
     public function wac_check_coupon_valid($false, $product, $instance, $values) {
-        
         $return = $false;
-        
-        $coupon_attribute_ids = get_post_meta($instance->id, $this->post_meta_name, true);
-        $coupon_attribute_ids_arr = unserialize($coupon_attribute_ids);
-        if (is_array($coupon_attribute_ids_arr) && !empty($coupon_attribute_ids_arr)) {
+        $validAttribute = $this->wac_check_coupon_valid_attributes($false, $product, $instance, $values);
+        $validTag = $this->wac_check_coupon_valid_tags($false, $product, $instance, $values);
+        if($validAttribute && $validTag){
+            $return = true;
+        } else{
+            $return = false;
+        }
+       
+        return $return;
+    }
+       /*NEW CODE HERE*/
+   public function wac_validate_coupon_cart_level($valid, $coupon) {
+        if (!$valid) return false;
 
-            $product_attributes = $product->get_attributes();
-            $current_product_texnomies = array();
-            if (!empty($product_attributes)):
-                foreach ($product_attributes as $attribute) :
-                    if ($attribute['is_taxonomy']) {
-                        $values = wc_get_product_terms($product->id, $attribute['name'], array('fields' => 'ids'));
-                        if (is_array($values) && !empty($values)) {
-                            foreach ($values as $kk => $vv) {
-                                $current_product_texnomies[] = $vv;
+        $attribute_ids = get_post_meta($coupon->get_id(), $this->post_meta_name, true);
+        $tag_ids = get_post_meta($coupon->get_id(), $this->tags_meta_name, true);
+        
+        if (empty($attribute_ids) && empty($tag_ids)) {
+            return $valid; // No custom restrictions
+        }
+
+        $matched = false;
+        foreach (WC()->cart->get_cart() as $item) {
+            $product = $item['data'];
+            $attr_ok = $this->wac_check_coupon_valid_attributes(false, $product, $coupon, $item);
+            $tag_ok  = $this->wac_check_coupon_valid_tags(false, $product, $coupon, $item);
+            
+            if ($attr_ok || $tag_ok) {
+                $matched = true;
+                break;
+            }
+        }
+
+        if (!$matched) {
+          //  wc_add_notice(__('This coupon is not valid for the selected product attributes.', 'Woo_Attributes_Coupon'), 'error');
+            return false;
+        }
+
+        return true;
+    }
+  /*END NEW CODE HERE*/
+    /**
+     * check coupon valid or not on attribute basis
+     *
+     * @since    2.0.0
+     */
+ 
+    public function wac_check_coupon_valid_attributes($false, $product, $instance, $values) {
+		
+        $return = $false;
+        $product_attributes = array();
+        $coupon_attribute_ids = get_post_meta($instance->get_id(), $this->post_meta_name, true);
+        $coupon_attribute_ids_arr = unserialize($coupon_attribute_ids);
+        $current_product_texnomies = array();
+        if (is_array($coupon_attribute_ids_arr) && !empty($coupon_attribute_ids_arr)) {
+            if( $product->is_type( 'variation' ) ) :
+                $available_variations = $product->get_attributes();
+                if ( !empty($available_variations )) :
+                    foreach($available_variations as $kk=>$vv){
+                        $term_obj  = get_term_by('slug', $vv, $kk);
+                        if(is_object($term_obj)):
+                            $current_product_texnomies[] = $term_obj->term_id;
+                        endif;
+                    }
+                endif;
+
+               /* $parent_product = wc_get_product($product->get_parent_id() );
+               
+                $parent_attributes = array();
+                $parent_attributes = $parent_product->get_attributes();
+                 
+                if (!empty($parent_attributes)):
+                    //error_log( "Coupon: parent_attributes " . print_r($parent_attributes, true) );
+                    foreach ($parent_attributes as $attribute) :
+                        if (isset($attribute['is_taxonomy']) && $attribute['is_taxonomy']) {
+                            $values = wc_get_product_terms($parent_product->get_id(), $attribute['name'], array('fields' => 'ids'));
+                            if (is_array($values) && !empty($values)) {
+                                foreach ($values as $kk => $vv) {
+                                    $current_product_texnomies[] = $vv;
+                                }
                             }
                         }
-                    }
-                endforeach;
+                    endforeach;
+                endif;*/
+
+            else:
+                $product_attributes = $product->get_attributes();
+                if (!empty($product_attributes)):
+                    foreach ($product_attributes as $attribute) :
+                        if (isset($attribute['is_taxonomy']) && $attribute['is_taxonomy']) {
+                            $values = wc_get_product_terms($product->get_id(), $attribute['name'], array('fields' => 'ids'));
+							if (is_array($values) && !empty($values)) {
+                                foreach ($values as $kk => $vv) {
+                                    $current_product_texnomies[] = $vv;
+                                }
+                            }
+                        }
+                    endforeach;
+                endif;
             endif;
-            
+
+            //echo"<pre>";print_R($current_product_texnomies);die();
             $compare_status = "";
             foreach($coupon_attribute_ids_arr as $kk=>$vv){
+                if(in_array($vv, $current_product_texnomies)){
+                    $compare_status = "1";
+                }
+            }
+            if($compare_status==''){
+                $return = false;
+            } else{
+                $return = true;
+            }
+        }
+        return $return;
+    }
+    
+    /**
+     * check coupon valid or not on tag basis
+     *
+     * @since    2.0.0
+     */
+    public function wac_check_coupon_valid_tags($false, $product, $instance, $values) {
+		
+		$return = $false;
+        
+        // validation based on attributes
+        $coupon_tag_ids = get_post_meta($instance->get_id(), $this->tags_meta_name, true);
+        $coupon_tag_ids_arr = unserialize($coupon_tag_ids);
+        if (is_array($coupon_tag_ids_arr) && !empty($coupon_tag_ids_arr)) {
+            //$product_tags = get_the_terms($product->id,"product_tag");
+			$product_tags = get_the_terms($values['product_id'],"product_tag");
+			$current_product_texnomies = array();
+            if (!empty($product_tags)):
+                foreach ($product_tags as $tag) :
+                    $current_product_texnomies[] = $tag->term_id;
+                endforeach;
+            endif;
+            $compare_status = "";
+            foreach($coupon_tag_ids_arr as $kk=>$vv){
                 if(in_array($vv, $current_product_texnomies)){
                     $compare_status = "1";
                 }
